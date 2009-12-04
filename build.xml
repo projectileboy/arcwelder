@@ -1,0 +1,79 @@
+<!--
+  ~ Copyright (c) Kurt Christensen, 2009
+  ~
+  ~  Licensed under the Artistic License, Version 2.0 (the "License"); you may not use this
+  ~  file except in compliance with the License. You may obtain a copy of the License at:
+  ~
+  ~  http://www.opensource.org/licenses/artistic-license-2.0.php
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software distributed under
+  ~  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+  ~  OF ANY KIND, either express or implied. See the License for the specific language
+  ~  governing permissions and limitations under the License..
+  -->
+
+<!-- Use this build only with idea-flex.skeleton and with patched JFlex.jar -->
+<project name="Arc plugin" default="jflex">
+    <property name="lexer.file" value="./src/com/bitbakery/arcwelder/lexer/_ArcLexer.java"/>
+    <property name="lexer.log" value="./jflex.log"/>
+    <property name="lexer.source" value="./src/com/bitbakery/arcwelder/lexer/arc.flex"/>
+    <property name="lexer.skeleton" value="./lib/idea-flex.skeleton"/>
+    <property name="jflex.jar" value="./lib/JFlex.jar"/>
+
+    <target name="git-test">
+    </target>
+
+
+    <target name="clean">
+        <delete file="${lexer.file}~"/>
+        <delete file="${lexer.file}"/>
+        <delete file="${lexer.log}"/>
+    </target>
+
+    <!-- TODO - Include this as part of an overall build process... -->
+    <target name="copy-resources">
+        <copy todir="out/production/intelli-arc/resources">
+            <fileset dir="resources"/>
+        </copy>
+        <copy todir="out/production/intelli-arc/doc">
+            <fileset dir="doc"/>
+        </copy>
+    </target>
+
+    <target name="jflex" description="Generate lexer from arc.flex, using idea flex skeleton and patched JFlex"
+            depends="clean">
+        <java jar="${jflex.jar}" output="${lexer.log}" fork="true">
+            <!--<arg value=" - -charat"/>-->
+            <arg value="-skel"/>
+            <arg value="${lexer.skeleton}"/>
+            <arg value="${lexer.source}"/>
+        </java>
+    </target>
+
+
+    <!-- TODO - Create compile/build target -->
+
+
+    <!-- TODO - Create testing target -->
+
+
+    <!-- TODO - Create packaging target -->
+
+
+    <!-- TODO - Create target to upload plugin updates -->
+
+
+    <target name="generate-arc-documentation"
+            description="Generates HTML documentation from the docstrings within the Arc library files">
+
+        <!-- TODO - Custom Ant task to parse Arc files and generate docs -->
+    </target>
+
+
+    <target name="deploy-arc-documentation" depends="generate-arc-documentation"
+            description="Deploys the HTML documentation for Arc to a designated host">
+
+        <scp></scp>
+    </target>
+
+</project>
