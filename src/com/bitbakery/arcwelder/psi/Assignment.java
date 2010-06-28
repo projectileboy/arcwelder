@@ -29,7 +29,6 @@ import javax.swing.*;
 public class Assignment extends Expression implements PsiNamedElement {
     public Assignment(ASTNode node) {
         super(node);
-        System.out.println("Creating assignment node: " + node.getText());
     }
 
     public PsiElement setName(@NonNls String s) throws IncorrectOperationException {

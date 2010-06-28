@@ -19,9 +19,6 @@ import com.bitbakery.arcwelder.highlighter.ArcSyntaxHighlighter;
 import com.bitbakery.arcwelder.psi.Assignment;
 import com.bitbakery.arcwelder.psi.Def;
 import com.bitbakery.arcwelder.psi.Mac;
-import com.bitbakery.arcwelder.structure.filters.AssignmentFilter;
-import com.bitbakery.arcwelder.structure.filters.DefFilter;
-import com.bitbakery.arcwelder.structure.filters.MacFilter;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.TextEditorBasedStructureViewModel;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -34,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static com.bitbakery.arcwelder.ArcStrings.*;
 
 /**
  * Defines groupers, sorters and filters used within the "structure view" for an Arc file
@@ -63,7 +62,10 @@ public class ArcStructureViewModel extends TextEditorBasedStructureViewModel {
 
     @NotNull
     public Filter[] getFilters() {
-        return new Filter[]{new DefFilter(), new MacFilter(), new AssignmentFilter()};
+        return new Filter[]{
+                new ArcStructureFilter(Def.class, ArcIcons.DEF, "Def filter", "display.or.hide.function.def.definitions", "display.function.definitions"),
+                new ArcStructureFilter(Mac.class, ArcIcons.MAC, "Mac filter", "display.or.hide.macro.mac.definitions", "display.macro.definitions"),
+                new ArcStructureFilter(Assignment.class, ArcIcons.EQ, "Assignment filter", "display.or.hide.assignments", "display.assignments")};
     }
 
     protected PsiFile getPsiFile() {
@@ -76,110 +78,33 @@ public class ArcStructureViewModel extends TextEditorBasedStructureViewModel {
     }
 
 
-    /**
-     * Groups macro definitions for the structure view
-     */
-    public static class MacGroup implements Group {
-        private Collection<TreeElement> macs = new ArrayList<TreeElement>();
+    public static class ArcStructureGroup implements Group {
+        private Collection<TreeElement> elements = new ArrayList<TreeElement>();
+
+        private String nameKey;
+        private Icon icon;
+        private TextAttributesKey textAttrKey;
+
+        public ArcStructureGroup(String nameKey, Icon icon, TextAttributesKey textAttrKey) {
+            this.nameKey = nameKey;
+            this.icon = icon;
+            this.textAttrKey = textAttrKey;
+        }
 
         public ItemPresentation getPresentation() {
             return new ItemPresentation() {
-                public String getPresentableText() {
-                    return "Macro definitions";
-                }
-
-                public String getLocationString() {
-                    return null;
-                }
-
-                public Icon getIcon(boolean open) {
-                    return ArcIcons.MAC;
-                }
-
-                public TextAttributesKey getTextAttributesKey() {
-                    return ArcSyntaxHighlighter.MAC;
-                }
+                public String getPresentableText() { return str(nameKey); }
+                public String getLocationString() { return null; }
+                public Icon getIcon(boolean open) { return icon; }
+                public TextAttributesKey getTextAttributesKey() { return textAttrKey; }
             };
         }
 
-        public Collection<TreeElement> getChildren() {
-            return macs;
-        }
+        public Collection<TreeElement> getChildren() { return elements; }
 
-        protected void add(TreeElement el) {
-            macs.add(el);
-        }
+        protected void add(TreeElement el) { elements.add(el); }
     }
 
-    /**
-     * Groups assignments for the structure view
-     */
-    public static class AssignmentGroup implements Group {
-        private Collection<TreeElement> eqs = new ArrayList<TreeElement>();
-
-        public ItemPresentation getPresentation() {
-            return new ItemPresentation() {
-                public String getPresentableText() {
-                    return "Assignments";
-                }
-
-                public String getLocationString() {
-                    return null;
-                }
-
-                public Icon getIcon(boolean open) {
-                    return ArcIcons.EQ;
-                }
-
-                public TextAttributesKey getTextAttributesKey() {
-                    return ArcSyntaxHighlighter.DEF;
-                }
-            };
-        }
-
-        public Collection<TreeElement> getChildren() {
-            return eqs;
-        }
-
-        protected void add(TreeElement el) {
-            eqs.add(el);
-        }
-    }
-
-    /**
-     * Groups function definitions for the structure view
-     */
-    public static class DefGroup implements Group {
-        private Collection<TreeElement> defs = new ArrayList<TreeElement>();
-
-        public ItemPresentation getPresentation() {
-            return new ItemPresentation() {
-                public String getPresentableText() {
-                    return "Function definitions";
-                }
-
-                public String getLocationString() {
-                    return null;
-                }
-
-                public Icon getIcon(boolean open) {
-                    return ArcIcons.DEF;
-                }
-
-                public TextAttributesKey getTextAttributesKey() {
-                    return ArcSyntaxHighlighter.DEF;
-                }
-            };
-        }
-
-        public Collection<TreeElement> getChildren() {
-            return defs;
-        }
-
-        protected void add(TreeElement el) {
-            defs.add(el);
-        }
-    }
 
     public static class ArcStructureGrouper implements Grouper {
 
@@ -190,9 +115,9 @@ public class ArcStructureViewModel extends TextEditorBasedStructureViewModel {
             if (parent.getValue() instanceof ArcStructureViewElement) {
                 Collection<Group> groups = new ArrayList<Group>();
 
-                DefGroup defs = new DefGroup();
-                MacGroup macs = new MacGroup();
-                AssignmentGroup eqs = new AssignmentGroup();
+                ArcStructureGroup defs = new ArcStructureGroup("function.definitions", ArcIcons.DEF, ArcSyntaxHighlighter.DEF);
+                ArcStructureGroup macs = new ArcStructureGroup("macro.definitions", ArcIcons.MAC, ArcSyntaxHighlighter.MAC);
+                ArcStructureGroup eqs = new ArcStructureGroup("assignments", ArcIcons.EQ, ArcSyntaxHighlighter.DEF); // TODO - Is the DEF correct here?
 
                 for (TreeElement el : children) {
                     if (el instanceof StructureViewTreeElement) {

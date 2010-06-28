@@ -12,10 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-package com.bitbakery.arcwelder.structure.filters;
+package com.bitbakery.arcwelder.structure;
 
-import com.bitbakery.arcwelder.ArcIcons;
-import com.bitbakery.arcwelder.psi.Mac;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.ActionPresentation;
 import com.intellij.ide.util.treeView.smartTree.Filter;
@@ -24,41 +22,43 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.bitbakery.arcwelder.ArcStrings.*;
+
 /**
  * Function definition (def) filter for the structure view editor.
  */
-public class MacFilter implements Filter {
-    public boolean isVisible(TreeElement treeNode) {
-        if (treeNode instanceof StructureViewTreeElement) {
-            StructureViewTreeElement el = (StructureViewTreeElement) treeNode;
-            return el.getValue() instanceof Mac;
-        }
-        return false;
+public class ArcStructureFilter implements Filter {
+
+    private Class type;
+    private Icon icon;
+    private String name;
+    private String descriptionKey;
+    private String textKey;
+
+    public ArcStructureFilter(Class type, Icon icon, String name, String descriptionKey, String textKey) {
+        this.type = type;
+        this.icon = icon;
+        this.name = name;
+        this.descriptionKey = descriptionKey;
+        this.textKey = textKey;
     }
 
-    public boolean isReverted() {
-        return false;
+    public boolean isVisible(TreeElement treeNode) {
+        return !(treeNode instanceof StructureViewTreeElement)
+                || !type.isInstance(((StructureViewTreeElement) treeNode).getValue());
     }
+
+    public boolean isReverted() { return true; }
 
     @NotNull
     public ActionPresentation getPresentation() {
         return new ActionPresentation() {
-            public String getText() {
-                return "Display Macro Definitions";
-            }
-
-            public String getDescription() {
-                return "Display or hide macro (mac) definitions";
-            }
-
-            public Icon getIcon() {
-                return ArcIcons.MAC;
-            }
+            public String getText() { return str(textKey); }
+            public String getDescription() { return str(descriptionKey); }
+            public Icon getIcon() { return icon; }
         };
     }
 
     @NotNull
-    public String getName() {
-        return "Mac filter";
-    }
+    public String getName() { return name; }
 }

@@ -29,7 +29,6 @@ import javax.swing.*;
 public class Mac extends Expression implements PsiNamedElement {
     public Mac(ASTNode node) {
         super(node);
-        System.out.println("Creating mac node: " + node.getText());
     }
 
     public PsiElement setName(@NonNls String s) throws IncorrectOperationException {

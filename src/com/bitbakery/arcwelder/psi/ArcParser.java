@@ -96,14 +96,17 @@ public class ArcParser implements PsiParser {
     }
 
     private void parseAssignment() {
-        modify(ASSIGNMENT);
         advance();
-
         if (isAt(SYMBOL)) {
+            // We're assigning a value to a symbol
+            modify(ASSIGNMENT);
             consume(SYMBOL_ASSIGNMENT);
         } else if (isAt(LEFT_PAREN)) {
+            // ... or we could just be modifying a value within a data structure
             parseExpression();
-        } 
+        } else {
+            b.error("Expected symbol or expression");
+        }
     }
 
     private void parseDefinition(IElementType type) {

@@ -29,7 +29,6 @@ import javax.swing.*;
 public class Def extends Expression implements PsiNamedElement {
     public Def(ASTNode node) {
         super(node);
-        System.out.println("Creating def node: " + node.getText());
     }
 
     public PsiElement setName(@NonNls String s) throws IncorrectOperationException {

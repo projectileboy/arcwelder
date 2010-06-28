@@ -26,6 +26,5 @@ import org.jetbrains.annotations.NonNls;
 public class Fn extends Expression {
     public Fn(ASTNode node) {
         super(node);
-        System.out.println("Creating fn node: " + node.getText());
     }
 }
