@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) Kurt Christensen, 2010.
+ *
+ * Licensed under the Artistic License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at:
+ *
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
 package com.bitbakery.arcwelder.lexer;
 
 import com.bitbakery.arcwelder.psi.ArcElementType;
@@ -8,7 +22,7 @@ import com.intellij.psi.tree.TokenSet;
 /**
  * Defines the set of Arc tokens, which we expand slightly (e.g., 'if' isn't truly a token in Arc)
  */
-public class ArcTokenTypes {
+public class    ArcTokenTypes {
 
     public static IElementType CHAR_LITERAL = new ArcElementType("character literal");
     public static IElementType NUMERIC_LITERAL = new ArcElementType("numeric literal");
@@ -16,6 +30,7 @@ public class ArcTokenTypes {
     public static IElementType TRUE = new ArcElementType("t");
     /* TODO - Anything special for empty lists? They *are* equivalent to nil, y'know... */
     public static IElementType NIL = new ArcElementType("nil");
+    public static TokenSet NUMERIC_LITERALS = TokenSet.create(NUMERIC_LITERAL);
     public static TokenSet STRING_LITERALS = TokenSet.create(STRING_LITERAL);
     public static TokenSet BOOLEAN_LITERALS = TokenSet.create(TRUE, NIL);
     public static TokenSet LITERALS = TokenSet.create(STRING_LITERAL, NUMERIC_LITERAL, CHAR_LITERAL, TRUE, NIL);

@@ -1,6 +1,19 @@
+/*
+ * Copyright (c) Kurt Christensen, 2010.
+ *
+ * Licensed under the Artistic License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at:
+ *
+ * http://www.opensource.org/licenses/artistic-license-2.0.php
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
 package com.bitbakery.arcwelder.psi;
 
-import com.bitbakery.arcwelder.lexer.ArcTokenTypes;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
@@ -8,7 +21,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.EOFException;
+import java.util.Stack;
 
 import static com.bitbakery.arcwelder.lexer.ArcTokenTypes.*;
 import static com.bitbakery.arcwelder.psi.ArcElementTypes.*;
@@ -17,94 +30,171 @@ import static com.bitbakery.arcwelder.psi.ArcElementTypes.*;
  * Parses a stream of Arc tokens into a meaningful tree of PSI elements.
  */
 public class ArcParser implements PsiParser {
+    private Stack<Marker> markers = new Stack<Marker>();
+    private PsiBuilder b;
+
     @NotNull
-    @Override
     public ASTNode parse(IElementType root, PsiBuilder b) {
+        this.b = b;
+
         final PsiBuilder.Marker rootMarker = b.mark();
 
         try {
-        while (!b.eof()) {
-            parseNext(b);
-        }
+            while (!b.eof()) parseNext();
         } catch (EofException e) {
-
+            while (!markers.isEmpty()) {
+                markers.pop().marker.drop();
+            }
         }
 
         rootMarker.done(root);
         return b.getTreeBuilt();
     }
 
-    private void parseNext(PsiBuilder b) {
-        if (isAt(b, LEFT_PAREN)) {
-            parseExpression(b);
-        } else if (isAt(b, LITERALS)) {
-            parseLiteral(b);
-        } else {
-            b.advanceLexer();
-        }
+    private void parseNext() {
+        if (isAt(LEFT_PAREN))
+            parseExpression();
+        else if (isAt(LEFT_SQUARE))
+            parseAnonymous();
+        else if (isAt(LITERALS))
+            consume(LITERAL);
+        else if (isAt(SYMBOL))
+            consume(SYMBOL_REFERENCE);
+        else
+            advance(); // Glide over that which we do not understand... just like real life!
     }
 
-    private void parseExpression(PsiBuilder b) {
-        IElementType type = EXPRESSION;
+    private void parseExpression() {
+        mark(EXPRESSION);
+        advance();
         
-        PsiBuilder.Marker m = b.mark();
-        b.advanceLexer(); // Move past the opening left paren
+        if (isAt(DEF))
+            parseDefinition(FUNCTION_DEFINITION);
+        else if (isAt(FN))
+            parseDefinition(FN_DEFINITION);
+        else if (isAt(MAC))
+            parseDefinition(MACRO_DEFINITION);
+        else if (isAt(EQ))
+            parseAssignment();
 
-        if (isAt(b, DEF)) {
-            type = FUNCTION_DEFINITION;
-            b.advanceLexer();
-        } else if (isAt(b, MAC)) {
-            type = MACRO_DEFINITION;
-            b.advanceLexer();
-        } else if (isAt(b, EQ)) {
-            // TODO - If the next chunk is an expression and not a symbol, then we're just setting a value in a map or some such...
-            type = ASSIGNMENT;
-            b.advanceLexer();
+        parseBody(RIGHT_PAREN);
+        end();
+    }
+
+    private void parseAnonymous() {
+        mark(ANONYMOUS_DEFINITION);
+        advance();
+        parseBody(RIGHT_SQUARE);
+        end();
+    }
+
+    private void parseBody(IElementType terminator) {
+        while (!isAt(terminator)) {
+            parseNext();
         }
+        advance();
+    }
 
-        while (!isAt(b, RIGHT_PAREN)) {
-            parseNext(b);
+    private void parseAssignment() {
+        modify(ASSIGNMENT);
+        advance();
+
+        if (isAt(SYMBOL)) {
+            consume(SYMBOL_ASSIGNMENT);
+        } else if (isAt(LEFT_PAREN)) {
+            parseExpression();
+        } 
+    }
+
+    private void parseDefinition(IElementType type) {
+        modify(type);
+        advance();
+
+        // Anonymous functions are anonymous. Hence the name.
+        if (type != FN_DEFINITION) {
+            if (isAt(SYMBOL))
+                consume(SYMBOL_ASSIGNMENT);
+            else
+                b.error("Expected symbol");
         }
         
-        b.advanceLexer();
-        m.done(type);
+        parseParameters();
+        parseDocstring();
     }
 
-    private void parseDef(PsiBuilder b) {
-        parseName(b);
-        parseParameters(b);
-        parseDocstring(b);
-        parseBody(b);
+    private void parseParameters() {
+        mark(PARAMETERS);
+        if (isAt(SYMBOL)) {
+            consume(SYMBOL_ASSIGNMENT);
+        } else if (isAt(LEFT_PAREN)) {
+            advance();
+            parseBody(RIGHT_PAREN);
+        }
+        end();
     }
 
-    private void parseMac(PsiBuilder b) {
-        parseName(b);
-        parseParameters(b);
-        parseDocstring(b);
-        parseBody(b);
+    // TODO - Note that we could have a macro which defines param names programmatically, so be careful with this one!
+    private void parseParameter() {
+        if (isAt(SYMBOL)) {
+            consume(SYMBOL_ASSIGNMENT);
+/*
+        } else if (isAt(LEFT_PAREN)) {
+            parseOptionalParameter();
+*/
+        }
     }
 
+    private void parseDocstring() {
+        if (isAt(STRING_LITERAL)) {
+            mark(DOCSTRING);
+            advance();
 
-     // TODO - We need element types for var defs and var refs - a def or mac name is a var def, as is a parameter, as is a let/with var, as is an = var
-    //          Any other sybols are var refs
+            // If the string is the *entire* body of a def/mac/fn, then it is *not* a docstring...
+            if (isAt(RIGHT_PAREN))
+                modify(LITERAL);
 
-
-    private void parseLiteral(PsiBuilder b) {
-        PsiBuilder.Marker m = b.mark();
-        b.advanceLexer();
-        m.done(LITERAL);
+            end();
+        }
     }
 
-    private boolean isAt(PsiBuilder b, IElementType tokenType) {
+    private void consume(IElementType type) {
+        mark(type);
+        advance();
+        end();
+    }
+
+    private boolean isAt(IElementType tokenType) {
+        if (b.eof()) throw new EofException();
         return b.getTokenType() == tokenType;
     }
 
-    private boolean isAt(PsiBuilder b, TokenSet tokenSet) {
+    private boolean isAt(TokenSet tokenSet) {
+        if (b.eof()) throw new EofException();
         return tokenSet.contains(b.getTokenType());
     }
 
+    private void mark(IElementType type) { markers.push(new Marker(b.mark(), type)); }
+    private void modify(IElementType type) { markers.peek().type = type; }
+    private void end() { markers.pop().done(); }
+    private void advance() { b.advanceLexer(); }
+
 
     private static class EofException extends RuntimeException {
-        
+        // Intentionally empty - this is just a goto that bails us out of the parse stack
+    }
+
+    private static class Marker {
+        PsiBuilder.Marker marker;
+        IElementType type;
+
+        Marker(PsiBuilder.Marker marker, IElementType type) {
+            this.marker = marker;
+            this.type = type;
+        }
+
+        void done() {
+            marker.done(type);
+            System.out.println("" + type);
+        }
     }
 }
