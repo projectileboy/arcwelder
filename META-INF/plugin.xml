@@ -1,0 +1,48 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin version="2" url="http://www.github.org/projectileboy/intelli-arc">
+    <id>com.bitbakery.arcwelder</id>
+    <name>Arcwelder</name>
+    <description>Development environment for the Arc language</description>
+    <version>0.1</version>
+    <vendor email="" logo="" url="">The Bit Bakery</vendor>
+    <idea-version since-build="9000"/>
+    <resource-bundle>com.bitbakery.arcwelder.ArcStrings</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <iconProvider implementation="com.bitbakery.arcwelder.ArcIconProvider"/>
+        <!--<colorSettingsPage implementation="org.jetbrains.plugins.scala.highlighter.ScalaColorsAndFontsPage"/>-->
+        <!--<applicationService serviceInterface="org.jetbrains.plugins.scala.settings.ScalaApplicationSettings"-->
+             <!--serviceImplementation="org.jetbrains.plugins.scala.settings.ScalaApplicationSettings"/>-->
+
+        <annotator language="Arc" implementationClass="com.bitbakery.arcwelder.ArcAnnotator"/>
+        <fileTypeFactory implementation="com.bitbakery.arcwelder.file.ArcFileTypeFactory"/>
+        <syntaxHighlighter key="Arc" implementationClass="com.bitbakery.arcwelder.highlighter.ArcSyntaxHighlighter"/>
+        <lang.braceMatcher language="Arc" implementationClass="com.bitbakery.arcwelder.ArcBraceMatcher"/>
+        <lang.parserDefinition language="Arc" implementationClass="com.bitbakery.arcwelder.ArcParserDefinition"/>
+        <lang.commenter language="Arc" implementationClass="com.bitbakery.arcwelder.ArcCommenter"/>
+        <lang.foldingBuilder language="Arc" implementationClass="com.bitbakery.arcwelder.ArcFoldingBuilder"/>
+        <lang.psiStructureViewFactory language="Arc"
+                                      implementationClass="com.bitbakery.arcwelder.structure.ArcStructureViewBuilderFactory"/>
+        <indexPatternBuilder implementation="com.bitbakery.arcwelder.ArcIndexPatternBuilder"/>
+    </extensions>
+
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
+
+    <project-components>
+        <!-- Add your project components here -->
+    </project-components>
+
+    <module-components>
+        <component>
+            <implementation-class>com.bitbakery.arcwelder.repl.ReplToolWindow</implementation-class>
+        </component>
+    </module-components>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>
