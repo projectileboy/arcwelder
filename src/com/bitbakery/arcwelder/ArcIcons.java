@@ -23,7 +23,8 @@ import static com.intellij.openapi.util.IconLoader.findIcon;
  */
 public class ArcIcons {
     private static final String BASE = "/icons/";
-//    public static final Icon REPL = findIcon(BASE + "arc16.png");
+
+    public static final Icon REPL = findIcon(BASE + "arc16.png");
     public static final Icon FILE = findIcon(BASE + "arc16.png");
 
 /*

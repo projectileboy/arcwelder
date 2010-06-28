@@ -1,9 +1,9 @@
 <!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
-<idea-plugin version="2" url="http://www.github.org/projectileboy/intelli-arc">
-    <id>com.bitbakery.arcwelder</id>
+<idea-plugin version="2" url="http://www.github.org/projectileboy/arcwelder">
+    <id>com.bitbakery.intelli-arc</id>
     <name>Arcwelder</name>
     <description>Development environment for the Arc language</description>
-    <version>0.1</version>
+    <version>0.5</version>
     <vendor email="" logo="" url="">The Bit Bakery</vendor>
     <idea-version since-build="9000"/>
     <resource-bundle>com.bitbakery.arcwelder.ArcStrings</resource-bundle>
@@ -32,13 +32,12 @@
     </application-components>
 
     <project-components>
-        <!-- Add your project components here -->
-    </project-components>
-
-    <module-components>
         <component>
             <implementation-class>com.bitbakery.arcwelder.repl.ReplToolWindow</implementation-class>
         </component>
+    </project-components>
+
+    <module-components>
     </module-components>
 
     <actions>
